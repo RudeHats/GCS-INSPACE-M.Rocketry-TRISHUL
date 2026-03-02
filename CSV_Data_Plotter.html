@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Plotter</title>
+    <style>
+        body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f7f6;
+    color: #333;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    color: #005a9c;
+}
+
+.controls {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input[type="file"],
+select,
+button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+button {
+    background-color: #0078d4;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #005a9c;
+}
+
+#saveButton {
+    background-color: #107c10;
+}
+
+#saveButton:hover {
+    background-color: #0a630a;
+}
+
+.chart-container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+    </style>
+</head>
+<body>
+
+    <h1>CSV Data Plotter</h1>
+
+    <div class="controls">
+        <label for="csvFile">1. Upload your CSV file:</label>
+        <input type="file" id="csvFile" accept=".csv">
+    </div>
+
+    <div id="columnSelectors" class="controls" style="display:none;">
+        <label for="xAxisSelect">2. Select Timestamp (X-Axis):</label>
+        <select id="xAxisSelect"></select>
+
+        <label for="yAxisSelect">3. Select Data (Y-Axis):</label>
+        <select id="yAxisSelect"></select>
+
+        <button id="plotButton">4. Plot Data</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <button id="saveButton" style="display:none;">Save Plot as Image</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    
+    <script>
+        // Store chart and data globally to access them from different functions
+let csvData = [];
+let columnHeaders = [];
+let myChartInstance = null;
+
+// Get references to HTML elements
+const fileInput = document.getElementById('csvFile');
+const columnSelectors = document.getElementById('columnSelectors');
+const xAxisSelect = document.getElementById('xAxisSelect');
+const yAxisSelect = document.getElementById('yAxisSelect');
+const plotButton = document.getElementById('plotButton');
+const saveButton = document.getElementById('saveButton');
+const chartCanvas = document.getElementById('myChart');
+
+// 1. Listen for a file upload
+fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Use PapaParse to read the CSV file
+    Papa.parse(file, {
+        header: true, // Treat the first row as headers
+        dynamicTyping: true, // Automatically convert numbers
+        skipEmptyLines: true,
+        complete: (results) => {
+            // Save the data
+            columnHeaders = results.meta.fields;
+            csvData = results.data;
+            
+            // Populate the dropdowns
+            populateDropdowns();
+            
+            // Show the next step
+            columnSelectors.style.display = 'block';
+        }
+    });
+});
+
+// 2. Function to fill dropdowns with column headers
+function populateDropdowns() {
+    // Clear any old options
+    xAxisSelect.innerHTML = '';
+    yAxisSelect.innerHTML = '';
+
+    columnHeaders.forEach(header => {
+        // Add header to X-axis dropdown
+        const xOption = document.createElement('option');
+        xOption.value = header;
+        xOption.textContent = header;
+        xAxisSelect.appendChild(xOption);
+
+        // Add header to Y-axis dropdown
+        const yOption = document.createElement('option');
+        yOption.value = header;
+        yOption.textContent = header;
+        yAxisSelect.appendChild(yOption);
+    });
+}
+
+// 3. Listen for the "Plot Data" button click
+plotButton.addEventListener('click', () => {
+    const xColumn = xAxisSelect.value;
+    const yColumn = yAxisSelect.value;
+
+    if (!xColumn || !yColumn) {
+        alert("Please select both an X and Y axis.");
+        return;
+    }
+
+    // Prepare data for Chart.js
+    const labels = csvData.map(row => row[xColumn]);
+    const data = csvData.map(row => row[yColumn]);
+
+    // Create the chart
+    createChart(labels, data, yColumn);
+
+    // Show the save button
+    saveButton.style.display = 'block';
+});
+
+// 4. Function to create/update the chart
+function createChart(labels, data, label) {
+    // If a chart already exists, destroy it before creating a new one
+    if (myChartInstance) {
+        myChartInstance.destroy();
+    }
+
+    const ctx = chartCanvas.getContext('2d');
+    myChartInstance = new Chart(ctx, {
+        type: 'line', // Line chart for time series data
+        data: {
+            labels: labels, // X-axis labels (timestamps)
+            datasets: [{
+                label: label, // Legend label (e.g., "Temperature")
+                data: data,   // Y-axis data points
+                borderColor: '#0078d4',
+                backgroundColor: 'rgba(0, 120, 212, 0.1)',
+                fill: true,
+                tension: 0.1 // Makes the line slightly curved
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: xAxisSelect.value // X-axis title
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: yAxisSelect.value // Y-axis title
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 5. Listen for the "Save" button click
+saveButton.addEventListener('click', () => {
+    // Ask for permission, as requested
+    const permission = confirm("Do you want to save this plot as a PNG image?");
+
+    if (permission) {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        
+        // Get the chart image as a data URL
+        // We set a white background so it looks good as a PNG
+        chartCanvas.toBlob((blob) => {
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = chartCanvas.width;
+            newCanvas.height = chartCanvas.height;
+            const newCtx = newCanvas.getContext('2d');
+            newCtx.fillStyle = 'white'; // Set background color
+            newCtx.fillRect(0, 0, newCanvas.width, newCanvas.height); // Fill background
+            newCtx.drawImage(chartCanvas, 0, 0); // Draw chart on top
+
+            // Set link properties for download
+            link.href = newCanvas.toDataURL('image/png');
+            link.download = 'my-plot.png';
+            
+            // Trigger the download
+            link.click();
+        });
+    }
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+logs/
+.vscode/
+dist/
+build/
+.env
+
+# Explicitly ignore electron folder as requested
+electron/

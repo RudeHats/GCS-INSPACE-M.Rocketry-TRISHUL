@@ -1,0 +1,49 @@
+{
+  "name": "application",
+  "version": "1.0.0",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "serialport": "^12.0.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.cansat.dashboard",
+    "productName": "CanSat Dashboard",
+    "files": [
+      "backend/**",
+      "frontend/**",
+      "leaflet/**",
+      "node_modules/**",
+      "electron/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "frontend/libs/webfonts",
+        "to": "libs/webfonts"
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "frontend/assets/rocket.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orientation Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        .test-container { display: flex; gap: 20px; }
+        .model-container { width: 300px; height: 300px; border: 2px solid #ccc; }
+        .controls { margin: 20px 0; }
+        .control-group { margin: 10px 0; }
+        label { display: inline-block; width: 80px; }
+        input[type="range"] { width: 200px; }
+        .value-display { font-weight: bold; color: #333; }
+        .test-buttons { margin: 20px 0; }
+        button { margin: 5px; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h1>3D Orientation Test</h1>
+    <p>This test verifies the corrected orientation logic for rocket and cansat models.</p>
+    
+    <div class="test-container">
+        <div>
+            <h3>Rocket Model</h3>
+            <div id="rocket-model" class="model-container"></div>
+        </div>
+        <div>
+            <h3>CanSat Model</h3>
+            <div id="cansat-model" class="model-container"></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Pitch:</label>
+            <input type="range" id="pitch-slider" min="-90" max="90" value="0">
+            <span id="pitch-value" class="value-display">0°</span>
+        </div>
+        <div class="control-group">
+            <label>Roll:</label>
+            <input type="range" id="roll-slider" min="-180" max="180" value="0">
+            <span id="roll-value" class="value-display">0°</span>
+        </div>
+        <div class="control-group">
+            <label>Yaw:</label>
+            <input type="range" id="yaw-slider" min="-180" max="180" value="0">
+            <span id="yaw-value" class="value-display">0°</span>
+        </div>
+    </div>
+    
+    <div class="test-buttons">
+        <button onclick="testLevelFlight()">Level Flight</button>
+        <button onclick="testNoseUp()">Nose Up</button>
+        <button onclick="testBankLeft()">Bank Left</button>
+        <button onclick="testTurnRight()">Turn Right</button>
+        <button onclick="testComplexManeuver()">Complex Maneuver</button>
+        <button onclick="resetOrientation()">Reset</button>
+    </div>
+
+    <script>
+        // Global variables for 3D models
+        let rocketScene, rocketCamera, rocketRenderer, rocketModel;
+        let cansatScene, cansatCamera, cansatRenderer, cansatModel;
+        
+        // Target rotations for smooth animation
+        const rocketTargetRotation = { x: 0, y: 0, z: 0 };
+        const cansatTargetRotation = { x: 0, y: 0, z: 0 };
+        
+        // Initialize 3D models
+        function initModels() {
+            initRocketModel();
+            initCansatModel();
+            setupControls();
+            animate();
+        }
+        
+        function initRocketModel() {
+            const container = document.getElementById('rocket-model');
+            
+            // Scene
+            rocketScene = new THREE.Scene();
+            rocketScene.background = new THREE.Color(0xadd8e6);
+            
+            // Camera
+            rocketCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            rocketCamera.position.set(2, 2, 6);
+            rocketCamera.lookAt(0, 0, 0);
+            
+            // Renderer
+            rocketRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            rocketRenderer.setSize(300, 300);
+            rocketRenderer.shadowMap.enabled = true;
+            rocketRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(rocketRenderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            rocketScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            rocketScene.add(directionalLight);
+            
+            // Create Rocket Model
+            rocketModel = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 32);
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0;
+            body.castShadow = true;
+            rocketModel.add(body);
+            
+            // Nose Cone
+            const noseGeometry = new THREE.ConeGeometry(0.4, 0.75, 32);
+            const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xe63946 });
+            const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+            nose.position.y = 1.875;
+            nose.castShadow = true;
+            rocketModel.add(nose);
+            
+            // Fins
+            const finGeometry = new THREE.BoxGeometry(0.1, 0.75, 0.5);
+            const finMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            
+            for (let i = 0; i < 4; i++) {
+                const fin = new THREE.Mesh(finGeometry, finMaterial);
+                const angle = (i * Math.PI) / 2;
+                fin.position.set(
+                    Math.cos(angle) * 0.4,
+                    -1.5,
+                    Math.sin(angle) * 0.4
+                );
+                fin.rotation.y = angle;
+                fin.castShadow = true;
+                rocketModel.add(fin);
+            }
+            
+            // Add axes helper
+            const axesHelper = new THREE.AxesHelper(2);
+            rocketModel.add(axesHelper);
+            
+            rocketScene.add(rocketModel);
+        }
+        
+        function initCansatModel() {
+            const container = document.getElementById('cansat-model');
+            
+            // Scene
+            cansatScene = new THREE.Scene();
+            cansatScene.background = new THREE.Color(0xadd8e6);
+            
+            // Camera
+            cansatCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            cansatCamera.position.set(1.5, 1.5, 3);
+            cansatCamera.lookAt(0, 0, 0);
+            
+            // Renderer
+            cansatRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            cansatRenderer.setSize(300, 300);
+            cansatRenderer.shadowMap.enabled = true;
+            cansatRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(cansatRenderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            cansatScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            cansatScene.add(directionalLight);
+            
+            // Create CanSat Model
+            cansatModel = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 32);
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            cansatModel.add(body);
+            
+            // Antenna
+            const antennaGeometry = new THREE.ConeGeometry(0.5, 0.4, 32);
+            const antennaMaterial = new THREE.MeshStandardMaterial({ color: 0xe63946 });
+            const antenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+            antenna.position.y = 0.8;
+            antenna.castShadow = true;
+            cansatModel.add(antenna);
+            
+            // Add axes helper
+            const axesHelper = new THREE.AxesHelper(1.5);
+            cansatModel.add(axesHelper);
+            
+            cansatScene.add(cansatModel);
+        }
+        
+        function setupControls() {
+            const pitchSlider = document.getElementById('pitch-slider');
+            const rollSlider = document.getElementById('roll-slider');
+            const yawSlider = document.getElementById('yaw-slider');
+            
+            const pitchValue = document.getElementById('pitch-value');
+            const rollValue = document.getElementById('roll-value');
+            const yawValue = document.getElementById('yaw-value');
+            
+            function updateOrientation() {
+                const pitch = parseFloat(pitchSlider.value);
+                const roll = parseFloat(rollSlider.value);
+                const yaw = parseFloat(yawSlider.value);
+                
+                pitchValue.textContent = pitch + '°';
+                rollValue.textContent = roll + '°';
+                yawValue.textContent = yaw + '°';
+                
+                update3DOrientation('rocket', pitch, roll, yaw);
+                update3DOrientation('cansat', pitch, roll, yaw);
+            }
+            
+            pitchSlider.addEventListener('input', updateOrientation);
+            rollSlider.addEventListener('input', updateOrientation);
+            yawSlider.addEventListener('input', updateOrientation);
+        }
+        
+        // Corrected orientation function
+        function update3DOrientation(source, pitch, roll, yaw) {
+            // Normalize and validate input values
+            let pitchDeg = parseFloat(pitch) || 0;
+            let rollDeg = parseFloat(roll) || 0;
+            let yawDeg = parseFloat(yaw) || 0;
+            
+            // Normalize angles to -180 to +180 range
+            pitchDeg = ((pitchDeg % 360) + 360) % 360;
+            if (pitchDeg > 180) pitchDeg -= 360;
+            
+            rollDeg = ((rollDeg % 360) + 360) % 360;
+            if (rollDeg > 180) rollDeg -= 360;
+            
+            yawDeg = ((yawDeg % 360) + 360) % 360;
+            if (yawDeg > 180) yawDeg -= 360;
+            
+            // Clamp extreme values
+            pitchDeg = Math.max(-90, Math.min(90, pitchDeg));
+            rollDeg = Math.max(-180, Math.min(180, rollDeg));
+            yawDeg = Math.max(-180, Math.min(180, yawDeg));
+            
+            // Convert to radians
+            const pitchRad = THREE.MathUtils.degToRad(pitchDeg);
+            const rollRad = THREE.MathUtils.degToRad(rollDeg);
+            const yawRad = THREE.MathUtils.degToRad(yawDeg);
+            
+            if (source === 'rocket') {
+                rocketTargetRotation.x = rollRad;   // Roll around X-axis
+                rocketTargetRotation.y = pitchRad;  // Pitch around Y-axis
+                rocketTargetRotation.z = yawRad;    // Yaw around Z-axis
+                rocketModel.rotation.order = 'ZYX';
+            } else if (source === 'cansat') {
+                cansatTargetRotation.x = rollRad;   // Roll around X-axis
+                cansatTargetRotation.y = pitchRad;  // Pitch around Y-axis
+                cansatTargetRotation.z = yawRad;    // Yaw around Z-axis
+                cansatModel.rotation.order = 'ZYX';
+            }
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const lerpFactor = 0.12;
+            
+            // Animate rocket
+            if (rocketModel) {
+                rocketModel.rotation.x = THREE.MathUtils.lerp(rocketModel.rotation.x, rocketTargetRotation.x, lerpFactor);
+                rocketModel.rotation.y = THREE.MathUtils.lerp(rocketModel.rotation.y, rocketTargetRotation.y, lerpFactor);
+                rocketModel.rotation.z = THREE.MathUtils.lerp(rocketModel.rotation.z, rocketTargetRotation.z, lerpFactor);
+                rocketModel.rotation.order = 'ZYX';
+                rocketRenderer.render(rocketScene, rocketCamera);
+            }
+            
+            // Animate cansat
+            if (cansatModel) {
+                cansatModel.rotation.x = THREE.MathUtils.lerp(cansatModel.rotation.x, cansatTargetRotation.x, lerpFactor);
+                cansatModel.rotation.y = THREE.MathUtils.lerp(cansatModel.rotation.y, cansatTargetRotation.y, lerpFactor);
+                cansatModel.rotation.z = THREE.MathUtils.lerp(cansatModel.rotation.z, cansatTargetRotation.z, lerpFactor);
+                cansatModel.rotation.order = 'ZYX';
+                cansatRenderer.render(cansatScene, cansatCamera);
+            }
+        }
+        
+        // Test functions
+        function testLevelFlight() {
+            updateOrientation(0, 0, 0);
+            document.getElementById('pitch-slider').value = 0;
+            document.getElementById('roll-slider').value = 0;
+            document.getElementById('yaw-slider').value = 0;
+        }
+        
+        function testNoseUp() {
+            updateOrientation(30, 0, 0);
+            document.getElementById('pitch-slider').value = 30;
+            document.getElementById('roll-slider').value = 0;
+            document.getElementById('yaw-slider').value = 0;
+        }
+        
+        function testBankLeft() {
+            updateOrientation(0, -45, 0);
+            document.getElementById('pitch-slider').value = 0;
+            document.getElementById('roll-slider').value = -45;
+            document.getElementById('yaw-slider').value = 0;
+        }
+        
+        function testTurnRight() {
+            updateOrientation(0, 0, 30);
+            document.getElementById('pitch-slider').value = 0;
+            document.getElementById('roll-slider').value = 0;
+            document.getElementById('yaw-slider').value = 30;
+        }
+        
+        function testComplexManeuver() {
+            updateOrientation(15, -20, 45);
+            document.getElementById('pitch-slider').value = 15;
+            document.getElementById('roll-slider').value = -20;
+            document.getElementById('yaw-slider').value = 45;
+        }
+        
+        function resetOrientation() {
+            testLevelFlight();
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', initModels);
+    </script>
+</body>
+</html>

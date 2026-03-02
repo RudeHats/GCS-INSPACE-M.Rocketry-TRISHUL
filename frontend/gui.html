@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanSat Telemetry Dashboard</title>
+    <link rel="stylesheet" href="libs/iceland-font.css">
+    <link rel="stylesheet" href="libs/font-awesome.css">
+
+    <!-- Preload all libraries for Electron packaging -->
+    <link rel="preload" href="libs/font-awesome.css" as="style">
+    <!-- Preload Font Awesome webfonts for offline, lag-free icon rendering -->
+    <link rel="preload" href="libs/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="libs/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="libs/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="libs/chart.js" as="script">
+    <link rel="preload" href="libs/leaflet.js" as="script">
+    <link rel="preload" href="libs/leaflet.css" as="style">
+    <link rel="preload" href="libs/iceland-font.css" as="style">
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="script.js" as="script">
+
+    
+
+    <style>
+        /* Fix Font Awesome font-face paths for offline usage */
+        @font-face {
+            font-family: "Font Awesome 6 Free";
+            font-style: normal;
+            font-weight: 900;
+            font-display: block;
+            src: url('libs/webfonts/fa-solid-900.woff2') format('woff2'),
+                 url('libs/webfonts/fa-solid-900.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: "Font Awesome 6 Free";
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+            src: url('libs/webfonts/fa-regular-400.woff2') format('woff2'),
+                 url('libs/webfonts/fa-regular-400.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: "Font Awesome 6 Brands";
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+            src: url('libs/webfonts/fa-brands-400.woff2') format('woff2'),
+                 url('libs/webfonts/fa-brands-400.ttf') format('truetype');
+        }
+        /* Optimized icon styling for better performance */
+        .fas,
+        .far,
+        .fab {
+            color: #000000 !important;
+            font-weight: 900;
+            display: inline-block;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Ensure all icons are black and properly styled */
+        .card-icon,
+        .tab-icon,
+        .btn-icon {
+            color: #000000 !important;
+            margin-right: 8px;
+        }
+
+        /* Specific icon styling for better visibility */
+        .fas.fa-satellite:before {
+            content: "\f7c0";
+            color: #000000;
+        }
+
+        .fas.fa-chart-line:before {
+            content: "\f201";
+            color: #000000;
+        }
+
+        .fas.fa-map-marked-alt:before {
+            content: "\f5a0";
+            color: #000000;
+        }
+
+        .fas.fa-mountain:before {
+            content: "\f6fc";
+            color: #000000;
+        }
+
+        .fas.fa-thermometer-half:before {
+            content: "\f2c9";
+            color: #000000;
+        }
+
+        .fas.fa-tachometer-alt:before {
+            content: "\f3fd";
+            color: #000000;
+        }
+
+        .fas.fa-bolt:before {
+            content: "\f0e7";
+            color: #000000;
+        }
+
+        .fas.fa-sync-alt:before {
+            content: "\f2f1";
+            color: #000000;
+        }
+
+        .fas.fa-globe-americas:before {
+            content: "\f57d";
+            color: #000000;
+        }
+
+        .fas.fa-route:before {
+            content: "\f4d7";
+            color: #ffffff;
+        }
+
+        .fas.fa-chart-area:before {
+            content: "\f1fe";
+            color: #ffffff;
+        }
+
+        .fas.fa-terminal:before {
+            content: "\f120";
+            color: #000000;
+        }
+
+        .fas.fa-play:before {
+            content: "\f04b";
+            color: #000000;
+        }
+
+        .fas.fa-upload:before {
+            content: "\f093";
+            color: #000000;
+        }
+
+        .fas.fa-play-circle:before {
+            content: "\f144";
+            color: #000000;
+        }
+
+        .fas.fa-satellite-dish:before {
+            content: "\f7c0";
+            color: #000000;
+        }
+
+        /* Additional icons for better coverage */
+        .fas.fa-rocket:before {
+            content: "\f135";
+            color: #000000;
+        }
+
+        .fas.fa-chart-bar:before {
+            content: "\f080";
+            color: #000000;
+        }
+
+        .fas.fa-chart-pie:before {
+            content: "\f200";
+            color: #000000;
+        }
+
+        .fas.fa-microchip:before {
+            content: "\f2db";
+            color: #000000;
+        }
+
+        .fas.fa-wifi:before {
+            content: "\f1eb";
+            color: #000000;
+        }
+
+        .fas.fa-signal:before {
+            content: "\f012";
+            color: #000000;
+        }
+
+        .fas.fa-battery-full:before {
+            content: "\f240";
+            color: #000000;
+        }
+
+        .fas.fa-battery-half:before {
+            content: "\f242";
+            color: #000000;
+        }
+
+        .fas.fa-battery-empty:before {
+            content: "\f244";
+            color: #000000;
+        }
+
+        .fas.fa-pause-circle:before {
+            content: "\f28b";
+            color: #000000;
+        }
+
+        .fas.fa-stop-circle:before {
+            content: "\f28d";
+            color: #000000;
+        }
+
+        .fas.fa-cog:before {
+            content: "\f013";
+            color: #000000;
+        }
+
+        .fas.fa-info-circle:before {
+            content: "\f05a";
+            color: #000000;
+        }
+
+        .fas.fa-exclamation-triangle:before {
+            content: "\f071";
+            color: #000000;
+        }
+
+        .fas.fa-check-circle:before {
+            content: "\f058";
+            color: #000000;
+        }
+
+        .fas.fa-times-circle:before {
+            content: "\f057";
+            color: #000000;
+        }
+
+        .fas.fa-search:before {
+            content: "\f002";
+            color: #000000;
+        }
+
+        .fas.fa-map-marker-alt:before {
+            content: "\f3c5";
+            color: #000000;
+        }
+
+        .fas.fa-arrows-alt:before {
+            content: "\f0b2";
+            color: #000000;
+        }
+
+        .fas.fa-file-csv:before {
+            content: "\f6dd";
+            color: #000000;
+        }
+
+        /* Data Plot Start/Stop Button Styling */
+        .data-plot-btn {
+            width: 120px;
+            height: 35px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: 2px solid #3d8b40;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Iceland', cursive;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .data-plot-btn:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .data-plot-btn.stopped {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border-color: #c62828;
+        }
+
+        .data-plot-btn.stopped:hover {
+            background: linear-gradient(135deg, #d32f2f, #c62828);
+        }
+
+        .data-plot-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Single Page Layout Styles */
+        .main-content {
+            overflow-y: auto;
+            height: calc(100vh - 120px);
+            padding: 20px;
+            /* Performance optimizations */
+            contain: layout style paint;
+            will-change: scroll-position;
+        }
+
+        .page-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /* Performance optimizations */
+            contain: layout style;
+            transform: translateZ(0); /* Force hardware acceleration */
+        }
+
+        .page-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-family: 'Iceland', cursive;
+            font-size: 24px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        /* Memory optimization for large datasets */
+        .memory-optimized {
+            will-change: transform;
+            contain: layout style paint;
+        }
+
+        /* Performance optimizations for charts */
+        .chart-card {
+            contain: layout style paint;
+            transform: translateZ(0);
+        }
+
+        .chart-card canvas {
+            will-change: transform;
+        }
+
+        /* Optimized 3D model containers */
+        #rocket-model, #cansat-model {
+            contain: layout style paint;
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        /* CSV streaming indicator */
+        .csv-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 1000;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+            font-weight: 500;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .csv-status i {
+            color: #ffd700;
+            margin-right: 6px;
+        }
+        
+        .csv-status #csv-count {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .csv-status small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        /* Optimize icon rendering */
+        .card-icon, .tab-icon, .btn-icon {
+            color: #000000 !important;
+            margin-right: 8px;
+            /* Performance optimizations */
+            display: inline-block;
+            text-rendering: optimizeSpeed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="libs/chart.js"></script>
+    <link rel="stylesheet" href="libs/leaflet.css" />
+    <script src="libs/leaflet.js"></script>
+    <!-- Three.js for 3D models -->
+    <script src="libs/three.min.js"></script>
+</head>
+
+<body>
+    <!-- Header (from gui.html) -->
+    <div class="header">
+        <div class="header-left">
+            <span></i> &nbsp;TEAM NAME <br />&nbsp;<span style="font-weight: 200; font-size: 18px;">
+                SUDARSHAN</span></span>
+            <!-- ID updated to match logic -->
+            <span> TEAM ID <span id="header-team-id" style="font-weight: 100;"><br />N/A</span></span>
+
+        </div>
+        <div style="font-family: 'Iceland', cursive;" class="header-center">
+            <i class="fas fa-satellite"></i> TRISHUL DASHBOARD
+        </div>
+        <div class="header-right">
+            <!-- ID updated to match logic -->
+            <span><i class="far fa-clock"></i>&nbsp;MISSION TIME <br />&nbsp;&nbsp;&nbsp;&nbsp; <span
+                    id="header-mission-time" style="font-weight: 200; font-size: 18px;">00:00:00</span></span>
+            <!-- ID updated to match logic -->
+            <span><i class="fas fa-clock"></i>&nbsp;GNSS TIME <br />&nbsp&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    id="header-gnss-time" style="font-weight: 200; font-size: 18px;">N/A</span></span>
+        </div>
+    </div>
+
+    <!-- Main Content - Single Scrollable Page -->
+    <div class="main-content">
+
+        <!-- Navigation removed - Single scrollable page -->
+
+        <!-- Telemetry Section -->
+        <div id="telemetry" class="page-section">
+            <h2><i class="fas fa-tachometer-alt"></i> Telemetry Dashboard</h2>
+            <div class="telemetry-grid">
+                <div class="rocket-cansat-telemetry">
+                    <!-- Rocket Telemetry Section -->
+                    <div class="rocket-heading-tele-part">
+                        <div class="rocket-telemetry">
+                            <div class="rocket-telemetry-buttons">
+                                <span class="rocket-telemetry-heading">Rocket Telemetry</span>
+                                <span id="rocket-packet-count" style="width: 380px; height: fit-content;">Packet Count:
+                                    N/A</span>
+                                <span id="rocket-flight-state" style="width: 380px; height: fit-content;">Flight State:
+                                    N/A</span>
+                                <!-- Buttons for sending commands -->
+                                <button class="rocket-telemetry-btn" id="rocket-ready-btn">READY</button>
+                                <button class="rocket-telemetry-btn" id="rocket-parr-btn"
+                                    onclick="sendCommand('rocket', 'P')">PAR R</button>
+                                <button class="rocket-telemetry-btn" id="rocket-calalt-btn"
+                                    onclick="sendCommand('rocket', 'B')">CAL A</button>
+                            </div>
+                            <div class="rocket-telemetry-progress">
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="rocket-altitude-progress">
+                                        <span id="rocket-altitude"></span><span>m</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Altitude</strong>
+                                    </p>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="rocket-pressure-progress">
+                                        <span id="rocket-pressure"></span><span>Pa</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Pressure</strong>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="rocket-temp-progress">
+                                        <span id="rocket-temp"></span> <span>°C</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Temperature</strong> </p>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="rocket-voltage-progress">
+                                        <span id="rocket-voltage"></span><span>V</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Voltage</strong>
+                                    </p>
+                                </div>
+
+                            </div>
+                            <div class="rocket-telemetry-values">
+                                <div class="rocket-telemetry-axis">
+                                    <div class="axis-row">
+                                        <div>AX:</div>
+                                        <div class="rocket-axis-values" id="rocket-ax-bar" data-value="0">
+                                            <div style="z-index: 50;" id="rocket-ax">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div>AY:</div>
+                                        <div class="rocket-axis-values" id="rocket-ay-bar" data-value="0">
+                                            <div style="z-index: 50;" id="rocket-ay">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div>AZ:</div>
+                                        <div class="rocket-axis-values" id="rocket-az-bar" data-value="0">
+                                            <div style="z-index: 50;" id="rocket-az">N/A</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rocket-telemetry-gas-values">
+                                    <div class="gas-sensors-values-container">
+                                        <div class="gas-sensors-values" id="rocket-smoke">SMOKE : N/A</div>
+                                        <div class="gas-sensors-values" id="rocket-surface-temp">SURFACE TEMP : N/A
+                                        </div>
+                                        <div class="gas-sensors-values" id="rocket-ammonia">AMMONIA : N/A</div>
+                                        <div class="gas-sensors-values" id="rocket-carbon-dioxide">CARBON DIOXIDE : N/A
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cansat Telemetry Section -->
+                    <div class="rocket-heading-tele-part">
+                        <div class="rocket-telemetry">
+                            <div class="rocket-telemetry-buttons">
+                                <span class="rocket-telemetry-heading">Cansat Telemetry</span>
+                                <span id="cansat-packet-count" style="width: 380px; height: fit-content;">Packet Count:
+                                    N/A</span>
+                                <span id="cansat-flight-state" style="width: 380px; height: fit-content;">Flight State:
+                                    N/A</span>
+                                <!-- Buttons for sending commands -->
+                                <button class="rocket-telemetry-btn" id="cansat-ready-btn">READY</button>
+                                <button class="rocket-telemetry-btn" id="cansat-setalt-btn"
+                                    onclick="sendCommand('cansat', 'B')">CAL A</button>
+                                <button class="rocket-telemetry-btn" id="cansat-parar-btn"
+                                    onclick="sendCommand('cansat', 'P')">PAR R</button>
+
+                            </div>
+                            <div class="rocket-telemetry-progress">
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="cansat-altitude-progress">
+                                        <span id="cansat-altitude"></span><span>m</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Altitude</strong>
+                                    </p>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="cansat-pressure-progress">
+                                        <span id="cansat-pressure"></span><span>Pa</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Pressure</strong>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="cansat-temp-progress">
+                                        <span id="cansat-temp"></span> <span>°C</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Temperature</strong> </p>
+                                </div>
+                                <div class="rocket-progress-circle">
+                                    <div class="circular-progress" id="cansat-voltage-progress">
+                                        <span id="cansat-voltage"></span><span>V</span>
+                                    </div>
+                                    <p><strong style="font-size: 15px;">Voltage</strong>
+                                    </p>
+                                </div>
+
+                            </div>
+
+
+                            <div class="rocket-telemetry-values">
+                                <div class="rocket-telemetry-axis">
+                                    <div class="axis-row">
+                                        <div>AX:</div>
+                                        <div class="rocket-axis-values" id="cansat-ax-bar" data-value="0">
+                                            <div style="z-index: 50;" id="cansat-ax">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div>AY:</div>
+                                        <div class="rocket-axis-values" id="cansat-ay-bar" data-value="0">
+                                            <div style="z-index: 50;" id="cansat-ay">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div>AZ:</div>
+                                        <div class="rocket-axis-values" id="cansat-az-bar" data-value="0">
+                                            <div style="z-index: 50;" id="cansat-az">N/A</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rocket-telemetry-gas-values">
+                                    <div class="gas-sensors-values-container">
+                                        <div class="gas-sensors-values" id="cansat-methane">METHANE : N/A</div>
+                                        <div class="gas-sensors-values" id="cansat-carbon-monoxide">CARBON MONOXIDE :
+                                            N/A</div>
+                                        <div class="gas-sensors-values" id="cansat-ammonia">AMMONIA : N/A</div>
+                                        <div class="gas-sensors-values" id="cansat-carbon-dioxide">CARBON DIOXIDE : N/A
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="rocket-cansat-log-axis">
+                <div class="first-div">
+                    <div class="cards">
+                        <!-- Rocket Orientation -->
+                        <article class="card" aria-label="Item card">
+                            <span class="orientation-heading">Rocket orientation</span>
+                            <div class="image-wrap" aria-label="Image area">
+                                <!-- 3D Model Container -->
+                                <div id="rocket-model" style="width: 200px; height: 200px; position: relative;"></div>
+                            </div>
+                            <div class="meta" aria-label="Text values">
+                                <div class="image-stats" aria-label="Image stats">
+                                    <span class="stat" id="rocket-roll">Roll: N/A</span>
+                                    <span class="stat" id="rocket-pitch">Pitch: N/A</span>
+                                    <span class="stat" id="rocket-yaw">Yaw: N/A</span>
+                                </div>
+                                <div class="other-values">
+                                    <div class="meta-row" id="rocket-gxs">GXs: N/A</div>
+                                    <div class="meta-row" id="rocket-gys">GYs: N/A</div>
+                                    <div class="meta-row" id="rocket-gzs">GZs: N/A</div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Cansat Orientation -->
+                        <article class="card" aria-label="Item card">
+                            <span class="orientation-heading">Cansat orientation</span>
+                            <div class="image-wrap" aria-label="Image area">
+                                <!-- 3D Model Container -->
+                                <div id="cansat-model" style="width: 200px; height: 200px; position: relative;"></div>
+                            </div>
+                            <div class="meta" aria-label="Text values">
+                                <div class="image-stats" aria-label="Image stats">
+                                    <span class="stat" id="cansat-roll">Roll: N/A</span>
+                                    <span class="stat" id="cansat-pitch">Pitch: N/A</span>
+                                    <span class="stat" id="cansat-yaw">Yaw: N/A</span>
+                                </div>
+                                <div class="other-values">
+                                    <div class="meta-row" id="cansat-gxs">GXs: N/A</div>
+                                    <div class="meta-row" id="cansat-gys">GYs: N/A</div>
+                                    <div class="meta-row" id="cansat-gzs">GZs: N/A</div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                </div>
+                <div class="second-div">
+                    <div class="log-container">
+                        <div class="card-title">
+                            <div>
+                                <i class="fas fa-terminal card-icon"></i>
+                                <span style="position: relative; bottom: 6px; font-family: 'Iceland', cursive;">Raw
+                                    Serial Log</span>
+                            </div>
+                            <div>
+                                <button class="rocket-telemetry-btn" id="start-csv-btn">Start CSV Log</button>
+                                <button class="rocket-telemetry-btn" id="stop-csv-btn">Stop CSV Log</button>
+                                <button class="rocket-telemetry-btn" id="clear-log-btn">Clear Log</button>
+                            </div>
+                        </div>
+                        <div id="log">Waiting for data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphs Section -->
+        <div id="graphs" class="page-section">
+            <h2><i class="fas fa-chart-line"></i> Real-Time Data Charts</h2>
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-mountain card-icon"></i>
+                        Altitude vs Time
+                    </div>
+                    <canvas id="altitudeChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-thermometer-half card-icon"></i>
+                        Temperature vs Time
+                    </div>
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-tachometer-alt card-icon"></i>
+                        Pressure vs Time
+                    </div>
+                    <canvas id="pressureChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-bolt card-icon"></i>
+                        Voltage vs Time
+                    </div>
+                    <canvas id="voltageChart"></canvas>
+                </div>
+                <!-- Gyro Charts added from index2.html -->
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-sync-alt card-icon"></i>
+                        Rocket Gyro Data
+                    </div>
+                    <canvas id="rocketGyroChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title">
+                        <i class="fas fa-sync-alt card-icon"></i>
+                        Cansat Gyro Data
+                    </div>
+                    <canvas id="cansatGyroChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maps Section -->
+        <div id="maps" class="page-section">
+            <h2><i class="fas fa-map-marked-alt"></i> Location Tracking & Navigation</h2>
+            <div class="maps-container">
+                <div class="map-main">
+                    <div class="card-title">
+                        <i class="fas fa-globe-americas card-icon"></i>
+                        GNSS Location Tracking
+                    </div>
+                    <div id="map"></div>
+
+                    <!-- Distance Meters and Manual Coordinates moved to bottom left of map -->
+                    <div class="map-controls"
+                        style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 8px; color: white; z-index: 1000; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div class="card-title" style="margin-bottom: 10px;">
+                            <i style="color: white;" class="fas fa-route card-icon"></i>
+                            Distance Meters
+                        </div>
+                        <div id="distance-meters" style="margin-bottom: 15px;">
+                            <span id="dist-cansat-rocket">Cansat &lt;--&gt; Rocket : N/A</span><br>
+                            <span id="dist-cansat-ground">Cansat &lt;--&gt; Ground : N/A</span><br>
+                            <span id="dist-rocket-ground">Rocket &lt;--&gt; Ground : N/A</span>
+                        </div>
+
+                        <div class="card-title" style="color: white; margin-bottom: 10px;">
+                            <i style="color: white" class="fas fa-chart-area card-icon"></i>
+                            Manual Coordinates
+                        </div>
+                        <div id="location-history" style="display: flex; flex-direction: column; gap: 5px;">
+                            <input id="maps-latitude" type="text" placeholder="Latitude (e.g., 25.212)"
+                                style="padding: 5px; border-radius: 3px; border: 1px solid #ccc;">
+                            <input id="maps-longitude" type="text" placeholder="Longitude (e.g., 65.314)"
+                                style="padding: 5px; border-radius: 3px; border: 1px solid #ccc;">
+                            <button id="set-ground-station-btn" class="rocket-telemetry-btn"
+                                style="width: fit-content; padding: 5px 10px;">Set Ground Station</button>
+                            <button id="get-location-btn" class="rocket-telemetry-btn"
+                                style="width: fit-content; padding: 5px 10px;">Get My Location</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-sidebar">
+                    <!-- Rocket GNSS Data -->
+                    <div class="card-title">
+                        <i class="fas fa-satellite-dish card-icon"></i>
+                        Rocket GNSS Data <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="gnss-data">
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-clock"></i> Time:</span>
+                            <span class="gnss-value" id="rocket-gnss-time">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-map-marker-alt"></i> Lat:</span>
+                            <span class="gnss-value" id="rocket-gnss-lat">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-map-marker-alt"></i> Lon:</span>
+                            <span class="gnss-value" id="rocket-gnss-lon">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-mountain"></i> Alt:</span>
+                            <span class="gnss-value"><span id="rocket-gnss-alt">N/A</span> m</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-satellite"></i> Sats:</span>
+                            <span class="gnss-value" id="rocket-gnss-sats">N/A</span>
+                        </div>
+                    </div>
+
+                    <!-- Cansat GNSS Data -->
+                    <div class="card-title">
+                        <i class="fas fa-satellite card-icon"></i>
+                        Cansat GNSS Data 🛰️
+                    </div>
+                    <div class="gnss-data">
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-clock"></i> Time:</span>
+                            <span class="gnss-value" id="cansat-gnss-time">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-map-marker-alt"></i> Lat:</span>
+                            <span class="gnss-value" id="cansat-gnss-lat">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-map-marker-alt"></i> Lon:</span>
+                            <span class="gnss-value" id="cansat-gnss-lon">N/A</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-mountain"></i> Alt:</span>
+                            <span class="gnss-value"><span id="cansat-gnss-alt">N/A</span> m</span>
+                        </div>
+                        <div class="gnss-item">
+                            <span class="gnss-label"><i class="fas fa-satellite"></i> Sats:</span>
+                            <span class="gnss-value" id="cansat-gnss-sats">N/A</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ****** FOOTER UPDATED FROM INDEX2.HTML ****** -->
+    <div class="footer">
+        <div class="footer-left">
+            <div class="status-dot" id="status-indicator"></div>
+            <span style="position: relative; right: 20px;" id="connection-status">Disconnected</span>
+            <!-- Flight Status from index2.html -->
+            <!-- Data plotting control -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="data-plot-btn" id="start-btn">
+                    <i class="fas fa-play"></i> <span style="position : relative; bottom:2px;">&nbsp;START</span>
+                </button>
+                <!-- Simulation controls -->
+                <button class="simulate-btn" id="start-simulation-btn">
+                    <i class="fas fa-play"></i> <span style="position : relative; bottom:2px;">&nbsp;Start
+                        Simulation</span>
+                </button>
+                <input type="file" id="json-file-input" accept=".json" style="display: none;">
+                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                <button class="simulate-btn" id="upload-json-btn" style="display: none;">
+                    <i class="fas fa-upload"></i> <span style="position : relative; bottom:2px;">&nbsp;Upload
+                        JSON</span>
+                </button>
+                <button class="simulate-btn" id="upload-csv-btn" style="display: none;">
+                    <i class="fas fa-file-csv"></i> <span style="position : relative; bottom:2px;">&nbsp;Upload
+                        CSV</span>
+                </button>
+                <button class="simulate-btn" id="play-simulation-btn" style="display: none;">
+                    <i class="fas fa-play-circle"></i> <span style="position : relative; bottom:2px;">&nbsp;PLAY</span>
+                </button>
+            </div>
+        </div>
+        <div class="footer-right">
+            <!-- Rocket Port Section from index2.html -->
+            <div class="port-section">
+                <div class="port-header">
+                    <span class="port-label"><i class="fas fa-rocket"></i> Rocket Port</span>
+                    <button class="refresh-icon" id="rocket-refresh" title="Refresh Ports">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="port-controls">
+                    <select class="footer-btn-style" id="rocket-port-select">
+                        <option selected disabled>Select Rocket Port</option>
+                    </select>
+                    <select class="footer-btn-style" id="rocket-baud-select">
+                        <option selected>9600</option>
+                        <option>19200</option>
+                        <option>38400</option>
+                        <option>57600</option>
+                        <option>115200</option>
+                    </select>
+                    <button class="footer-btn-style connect-btn" id="rocket-connect"
+                        style="height: 30px; width: 80px;">Connect</button>
+                </div>
+            </div>
+
+            <!-- Cansat Port Section from index2.html -->
+            <div class="port-section">
+                <div class="port-header">
+                    <span class="port-label">🛰️ Cansat Port</span>
+                    <button class="refresh-icon" id="cansat-refresh" title="Refresh Ports">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="port-controls">
+                    <select class="footer-btn-style" id="cansat-port-select">
+                        <option selected disabled>Select Cansat Port</option>
+                    </select>
+                    <select class="footer-btn-style" id="cansat-baud-select">
+                        <option selected>9600</option>
+                        <option>19200</option>
+                        <option>38400</option>
+                        <option>57600</option>
+                        <option>115200</option>
+                    </select>
+                    <button class="footer-btn-style connect-btn" id="cansat-connect"
+                        style="height: 30px; width: 80px;">Connect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ****** END OF UPDATED FOOTER ****** -->
+
+    <!-- CSV Status Indicator -->
+    <div id="csv-status" class="csv-status">
+        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+            <i class="fas fa-database"></i>
+            <span>CSV Logging</span>
+            <span id="csv-count" style="margin-left: auto; margin-left: 8px;">0</span>
+        </div>
+        <small>
+            <span style="color: #ff6b6b;">⚡ Rocket: <span id="csv-count-rocket">0</span></span> | 
+            <span style="color: #4ecdc4;">📡 Cansat: <span id="csv-count-cansat">0</span></span>
+        </small>
+        <small id="csv-storage-info">Ready</small>
+    </div>
+
+    <!-- 3D Models Script -->
+    <script>
+        // Global variables for 3D models
+        let rocketScene, rocketCamera, rocketRenderer, rocketModel;
+        let cansatScene, cansatCamera, cansatRenderer, cansatModel;
+        
+        // Target rotations for smooth animation
+        const rocketTargetRotation = { x: 0, y: 0, z: 0 };
+        const cansatTargetRotation = { x: 0, y: 0, z: 0 };
+        
+        // Initialize 3D models when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a moment for the DOM to be fully ready
+            setTimeout(() => {
+                initialize3DModels();
+                animate3DModels();
+            }, 100);
+        });
+        
+        function initialize3DModels() {
+            initializeRocketModel();
+            initializeCansatModel();
+        }
+        
+        function initializeRocketModel() {
+            const container = document.getElementById('rocket-model');
+            if (!container) return;
+            
+            // Scene
+            rocketScene = new THREE.Scene();
+            rocketScene.background = new THREE.Color(0xadd8e6); // Light blue sky
+            
+            // Camera
+            rocketCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            rocketCamera.position.set(2, 2, 6);
+            rocketCamera.lookAt(0, 0, 0);
+            
+            // Renderer
+            rocketRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            rocketRenderer.setSize(200, 200);
+            rocketRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            rocketRenderer.shadowMap.enabled = true;
+            rocketRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(rocketRenderer.domElement);
+            
+            // Enhanced Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            rocketScene.add(ambientLight);
+            
+            // Main directional light
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight1.position.set(5, 5, 5);
+            directionalLight1.castShadow = true;
+            rocketScene.add(directionalLight1);
+            
+            // Fill light from another angle
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight2.position.set(-5, 3, -5);
+            rocketScene.add(directionalLight2);
+            
+            // Light from below
+            const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight3.position.set(0, -5, 0);
+            rocketScene.add(directionalLight3);
+            
+            // Create Enhanced Rocket Model
+            rocketModel = new THREE.Group();
+            
+            // Lower Body (White Cylinder) - Enhanced proportions
+            const lowerBodyGeometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 32);
+            const lowerBodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                metalness: 0.2,
+                roughness: 0.6
+            });
+            const lowerBody = new THREE.Mesh(lowerBodyGeometry, lowerBodyMaterial);
+            lowerBody.position.y = 0;
+            lowerBody.castShadow = true;
+            lowerBody.receiveShadow = true;
+            rocketModel.add(lowerBody);
+            
+            // Upper Body / Nose Cone (Red Cone) - Enhanced proportions
+            const noseConeGeometry = new THREE.ConeGeometry(0.4, 0.75, 32);
+            const noseConeMaterial = new THREE.MeshStandardMaterial({
+                color: 0xe63946,
+                metalness: 0.5,
+                roughness: 0.4
+            });
+            const noseCone = new THREE.Mesh(noseConeGeometry, noseConeMaterial);
+            noseCone.position.y = 1.875; // Position on top of body
+            noseCone.castShadow = true;
+            rocketModel.add(noseCone);
+            
+            // Enhanced Fins (Black) - 4 properly positioned fins
+            const finMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                metalness: 0.2,
+                roughness: 0.4
+            });
+            
+            const finShape = new THREE.Shape();
+            finShape.moveTo(0, 0); // Base at rocket body
+            finShape.lineTo(0, 0.75); // Height of fin
+            finShape.lineTo(0.5, 0); // Width of fin
+            finShape.lineTo(0, 0); // Close shape
+            
+            const finGeometry = new THREE.ExtrudeGeometry(finShape, {
+                steps: 1,
+                depth: 0.05, // Thickness of the fin
+                bevelEnabled: false
+            });
+            
+            // Fin 1 (+X)
+            const fin1 = new THREE.Mesh(finGeometry, finMaterial);
+            fin1.position.set(0.4, -1.5, -0.025);
+            fin1.rotation.y = 0;
+            fin1.castShadow = true;
+            rocketModel.add(fin1);
+            
+            // Fin 2 (-X)
+            const fin2 = fin1.clone();
+            fin2.position.set(-0.4, -1.5, 0.025);
+            fin2.rotation.y = Math.PI;
+            rocketModel.add(fin2);
+            
+            // Fin 3 (+Z)
+            const fin3 = fin1.clone();
+            fin3.position.set(0.025, -1.5, 0.4);
+            fin3.rotation.y = Math.PI / 2;
+            rocketModel.add(fin3);
+            
+            // Fin 4 (-Z)
+            const fin4 = fin1.clone();
+            fin4.position.set(-0.025, -1.5, -0.4);
+            fin4.rotation.y = -Math.PI / 2;
+            rocketModel.add(fin4);
+            
+            // Add Axes Helper for orientation visualization
+            const axesHelper = new THREE.AxesHelper(2);
+            rocketModel.add(axesHelper);
+            
+            // Add ground plane for visual context
+            const planeGeometry = new THREE.PlaneGeometry(8, 8);
+            const planeMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x999999, 
+                side: THREE.DoubleSide 
+            });
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -2.5;
+            plane.receiveShadow = true;
+            rocketScene.add(plane);
+            
+            rocketScene.add(rocketModel);
+        }
+        
+        function initializeCansatModel() {
+            const container = document.getElementById('cansat-model');
+            if (!container) return;
+            
+            // Scene
+            cansatScene = new THREE.Scene();
+            cansatScene.background = new THREE.Color(0xadd8e6); // Light blue sky
+            
+            // Camera
+            cansatCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            cansatCamera.position.set(1.5, 1.5, 3);
+            cansatCamera.lookAt(0, 0, 0);
+            
+            // Renderer
+            cansatRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            cansatRenderer.setSize(200, 200);
+            cansatRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            cansatRenderer.shadowMap.enabled = true;
+            cansatRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(cansatRenderer.domElement);
+            
+            // Enhanced Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            cansatScene.add(ambientLight);
+            
+            // Main directional light
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight1.position.set(5, 5, 5);
+            directionalLight1.castShadow = true;
+            cansatScene.add(directionalLight1);
+            
+            // Fill light from another angle
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight2.position.set(-5, 3, -5);
+            cansatScene.add(directionalLight2);
+            
+            // Create Enhanced CanSat Model
+            cansatModel = new THREE.Group();
+            
+            // CanSat Body (Enhanced metallic cylinder)
+            const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 32);
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xcccccc, // Silver/gray
+                metalness: 0.8,
+                roughness: 0.3
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            cansatModel.add(body);
+            
+            // CanSat Nose Cone / Antenna (Red)
+            const coneGeometry = new THREE.ConeGeometry(0.5, 0.4, 32);
+            const coneMaterial = new THREE.MeshStandardMaterial({
+                color: 0xe63946, // Red
+                metalness: 0.5,
+                roughness: 0.4
+            });
+            const cone = new THREE.Mesh(coneGeometry, coneMaterial);
+            cone.position.y = 0.8; // Place on top of the cylinder
+            cone.castShadow = true;
+            cansatModel.add(cone);
+            
+            // Add Axes Helper for orientation visualization
+            const axesHelper = new THREE.AxesHelper(1.5);
+            cansatModel.add(axesHelper);
+            
+            // Add ground plane for visual context
+            const planeGeometry = new THREE.PlaneGeometry(6, 6);
+            const planeMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x999999, 
+                side: THREE.DoubleSide 
+            });
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -1.5;
+            plane.receiveShadow = true;
+            cansatScene.add(plane);
+            
+            cansatScene.add(cansatModel);
+        }
+        
+        function animate3DModels() {
+            requestAnimationFrame(animate3DModels);
+            
+            // Optimized smooth rotation interpolation with proper Euler angle handling
+            const lerpFactor = 0.12; // Smooth but responsive updates
+            
+            // Only update if models exist and are visible
+            if (rocketModel && rocketRenderer && rocketScene && rocketCamera) {
+                const rocketContainer = document.getElementById('rocket-model');
+                if (rocketContainer && rocketContainer.offsetParent !== null) {
+                    // Smooth interpolation for rocket model
+                    rocketModel.rotation.x = THREE.MathUtils.lerp(rocketModel.rotation.x, rocketTargetRotation.x, lerpFactor);
+                    rocketModel.rotation.y = THREE.MathUtils.lerp(rocketModel.rotation.y, rocketTargetRotation.y, lerpFactor);
+                    rocketModel.rotation.z = THREE.MathUtils.lerp(rocketModel.rotation.z, rocketTargetRotation.z, lerpFactor);
+                    
+                    // Ensure rotation order is maintained
+                    rocketModel.rotation.order = 'ZYX';
+                    
+                    rocketRenderer.render(rocketScene, rocketCamera);
+                }
+            }
+            
+            if (cansatModel && cansatRenderer && cansatScene && cansatCamera) {
+                const cansatContainer = document.getElementById('cansat-model');
+                if (cansatContainer && cansatContainer.offsetParent !== null) {
+                    // Smooth interpolation for cansat model
+                    cansatModel.rotation.x = THREE.MathUtils.lerp(cansatModel.rotation.x, cansatTargetRotation.x, lerpFactor);
+                    cansatModel.rotation.y = THREE.MathUtils.lerp(cansatModel.rotation.y, cansatTargetRotation.y, lerpFactor);
+                    cansatModel.rotation.z = THREE.MathUtils.lerp(cansatModel.rotation.z, cansatTargetRotation.z, lerpFactor);
+                    
+                    // Ensure rotation order is maintained
+                    cansatModel.rotation.order = 'ZYX';
+                    
+                    cansatRenderer.render(cansatScene, cansatCamera);
+                }
+            }
+        }
+        
+        // Function to normalize orientation values to prevent extreme rotations
+        function normalizeOrientationValues(pitch, roll, yaw) {
+            // Parse and validate input values
+            let pitchDeg = parseFloat(pitch) || 0;
+            let rollDeg = parseFloat(roll) || 0;
+            let yawDeg = parseFloat(yaw) || 0;
+            
+            // Normalize angles to -180 to +180 range
+            pitchDeg = ((pitchDeg % 360) + 360) % 360;
+            if (pitchDeg > 180) pitchDeg -= 360;
+            
+            rollDeg = ((rollDeg % 360) + 360) % 360;
+            if (rollDeg > 180) rollDeg -= 360;
+            
+            yawDeg = ((yawDeg % 360) + 360) % 360;
+            if (yawDeg > 180) yawDeg -= 360;
+            
+            // Clamp extreme values to prevent unrealistic orientations
+            pitchDeg = Math.max(-90, Math.min(90, pitchDeg));  // Pitch limited to ±90°
+            rollDeg = Math.max(-180, Math.min(180, rollDeg));   // Roll can be ±180°
+            yawDeg = Math.max(-180, Math.min(180, yawDeg));     // Yaw can be ±180°
+            
+            return { pitch: pitchDeg, roll: rollDeg, yaw: yawDeg };
+        }
+        
+        // Function to update 3D model orientation with proper Euler angle handling
+        function update3DOrientation(source, pitch, roll, yaw) {
+            // Normalize and validate input values
+            let { pitch: pitchDeg, roll: rollDeg, yaw: yawDeg } = normalizeOrientationValues(pitch, roll, yaw);
+
+            // Convert degrees to radians (no calibration swaps - use sensor values directly)
+            const pitchRad = THREE.MathUtils.degToRad(pitchDeg);
+            const rollRad = THREE.MathUtils.degToRad(rollDeg);
+            const yawRad = THREE.MathUtils.degToRad(yawDeg);
+            
+            // Apply proper aircraft/spacecraft coordinate system mapping
+            // In aircraft/spacecraft coordinates:
+            // - Pitch: nose up/down (rotation around Y-axis)
+            // - Roll: wing up/down (rotation around X-axis) 
+            // - Yaw: nose left/right (rotation around Z-axis)
+            // 
+            // Three.js coordinate system:
+            // - X: right, Y: up, Z: toward viewer
+            // - Rotation order: ZYX (yaw-pitch-roll) for proper aircraft orientation
+            
+            if (source === 'rocket') {
+                // Use Euler angles with proper rotation order (ZYX)
+                // This prevents gimbal lock and provides correct orientation
+                rocketTargetRotation.x = rollRad;   // Roll around X-axis
+                rocketTargetRotation.y = pitchRad;  // Pitch around Y-axis  
+                rocketTargetRotation.z = yawRad;    // Yaw around Z-axis
+                
+                // Set rotation order for proper Euler angle handling
+                rocketModel.rotation.order = 'ZYX';
+            } else if (source === 'cansat') {
+                // Same mapping for cansat
+                cansatTargetRotation.x = rollRad;   // Roll around X-axis
+                cansatTargetRotation.y = pitchRad;  // Pitch around Y-axis
+                cansatTargetRotation.z = yawRad;    // Yaw around Z-axis
+                
+                // Set rotation order for proper Euler angle handling
+                cansatModel.rotation.order = 'ZYX';
+            }
+            
+            // Debug logging for orientation updates (only in development)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log(`${source.toUpperCase()} Orientation: Pitch=${pitchDeg.toFixed(2)}°, Roll=${rollDeg.toFixed(2)}°, Yaw=${yawDeg.toFixed(2)}°`);
+            }
+        }
+        
+        // Enhanced Start/Stop button functionality
+        function updateStartStopButton() {
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn && typeof window.isStarted !== 'undefined') {
+                const icon = startBtn.querySelector('i');
+                const text = startBtn.querySelector('span');
+                
+                if (window.isStarted) {
+                    startBtn.classList.add('stopped');
+                    if (icon) icon.className = 'fas fa-stop';
+                    if (text) text.innerHTML = '&nbsp;STOP';
+                } else {
+                    startBtn.classList.remove('stopped');
+                    if (icon) icon.className = 'fas fa-play';
+                    if (text) text.innerHTML = '&nbsp;START';
+                }
+            }
+        }
+        
+        // Function to test orientation system with sample data
+        function testOrientationSystem() {
+            console.log('Testing orientation system...');
+            
+            // Test rocket orientation with various angles
+            const testCases = [
+                { name: 'Level Flight', pitch: 0, roll: 0, yaw: 0 },
+                { name: 'Nose Up', pitch: 30, roll: 0, yaw: 0 },
+                { name: 'Nose Down', pitch: -30, roll: 0, yaw: 0 },
+                { name: 'Bank Left', pitch: 0, roll: -45, yaw: 0 },
+                { name: 'Bank Right', pitch: 0, roll: 45, yaw: 0 },
+                { name: 'Turn Left', pitch: 0, roll: 0, yaw: -30 },
+                { name: 'Turn Right', pitch: 0, roll: 0, yaw: 30 },
+                { name: 'Complex Maneuver', pitch: 15, roll: -20, yaw: 45 }
+            ];
+            
+            let testIndex = 0;
+            const testInterval = setInterval(() => {
+                if (testIndex >= testCases.length) {
+                    clearInterval(testInterval);
+                    console.log('Orientation testing completed');
+                    return;
+                }
+                
+                const testCase = testCases[testIndex];
+                console.log(`Testing: ${testCase.name} - Pitch: ${testCase.pitch}°, Roll: ${testCase.roll}°, Yaw: ${testCase.yaw}°`);
+                
+                // Test both rocket and cansat
+                update3DOrientation('rocket', testCase.pitch, testCase.roll, testCase.yaw);
+                update3DOrientation('cansat', testCase.pitch, testCase.roll, testCase.yaw);
+                
+                testIndex++;
+            }, 2000); // Test each case for 2 seconds
+        }
+        
+        // Make functions globally available for script.js
+        window.update3DOrientation = update3DOrientation;
+        window.updateStartStopButton = updateStartStopButton;
+        window.testOrientationSystem = testOrientationSystem;
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+
+</html>
