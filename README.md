@@ -1,38 +1,58 @@
-# CanSat Dashboard 🚀
+# Ground Control Station (GCS) - Trishul Dashboard 🚀
 
-Welcome to the **CanSat Dashboard** repository. This powerful application is designed to act as the primary Ground Control Station (GCS) telemetry dashboard for CanSat, Rocket, and other payload deployments. It features modern architecture bridging serial communication and expressive UI rendering.
+Welcome to the **Trishul Dashboard** repository. This is a high-performance, real-time Ground Control Station (GCS) software tailored for CanSat, Rocket, and custom aerospace payload telemetry operations.
 
-## 🌟 Features
-- **Real-Time Data Plotting**: Advanced streaming and data visualization of incoming sensor telemetry from serial interfaces.
-- **Interactive Mapping**: Geographic plotting using Leaflet.js to monitor payload trajectory and live location data.
-- **CSV Data Processing**: Fast and reliable onboard data viewing with the `CSV_Data_Plotter.html` tool.
-- **Robust Backend Services**: Engineered using Node.js, Express, and modern WebSockets to enable rapid integration.
+Designed with a robust web-based architecture, this dashboard excels at ingesting raw serial telemetry streams and rendering them through a comprehensive, fully interactive UI built using modern web libraries.
 
-> [!NOTE] 
-> This repository houses the Core Dashboard interface, mapping scripts, and backend servers. The Electron wrapper has been intentionally excluded from this standalone source map.
+## 🌟 Key Features
+
+### 1. 📡 Real-Time Telemetry & Data Visualization
+- **Live Graphing:** Utilizes **Chart.js** for high-frequency plotting of Altitude, Pressure, Temperature, Voltage, and Gyroscope data against time.
+- **Data Streaming:** Highly optimized WebSocket communication guarantees minimal latency from the ground hardware receiver directly to the UI.
+- **Unified CSV Logging:** In-memory optimized buffering engine capable of logging 50k+ rows of mission-critical telemetry into a structurally unified CSV format without browser lag.
+- **Offline Data Plotting:** Includes a standalone `CSV_Data_Plotter.html` tool to replay and analyze telemetry dumps post-mission.
+
+### 2. 🌍 Interactive Geospatial Tracking
+- **GNSS Mapping:** Powered by **Leaflet.js**, offering real-time 2D plotting of Rocket and CanSat geographical coordinates.
+- **Distance Calculations:** Real-time distance resolution between Rocket, CanSat, and the Ground Station.
+- **Manual Coordinates Calibration:** Set ground station parameters interactively via Map Controls.
+
+### 3. 🚀 3D Spatial Orientation
+- **Digital Twin:** Real-time 3D models of the CanSat and Rocket rendered directly in the browser via **Three.js**.
+- **Attitude Indicators:** Visualize accurate Roll, Pitch, and Yaw based on the onboard IMU stream (GXs, GYs, GZs).
+
+### 4. ⚡ High-Performance Architecture
+- **Web Workers & Caching:** A dedicated Service Worker (`sw.js`) ensures critical assets (fonts, icons, stylesheets) are heavily cached for robust offline and field-deployment usage.
+- **Efficient DOM Rendering:** Implements layout and paint containment optimizations (`contain: layout style paint`) allowing smooth UI framing even with dense sensor inputs.
 
 ## 🛠️ Technology Stack
-- **Languages**: HTML5, CSS3, JavaScript (ES6+)
-- **Frontend Core**: Interactive DOM rendering, Leaflet Map integration, Charting utilities.
-- **Backend Handlers**: `Express.js`, `ws` for Websockets, `serialport` for serial parsing.
+- **Frontend Core:** HTML5, CSS3 (Custom Glass-morphism aesthetics), Vanilla Javascript (ES6+)
+- **Data Visualization:** `Chart.js` (2D Plots), `Three.js` (3D Models)
+- **Mapping:** `Leaflet.js` (Online/Offline map tiles fallback)
+- **Backend/Communication:** Designed to interface with Node.js (`express`, `ws`, `serialport`)
+
+*(Note: The `electron` application wrapper has been explicitly excluded from this repository to focus purely on the core Dashboard features.)*
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-1. [Node.js](https://nodejs.org/) (v16.x or newer is recommended).
-2. Existing Serial connection/telemetry hardware simulator (if running live).
-
-### Installation
-
-1. Clean install all dashboard dependencies via npm:
-   ```bash
-   npm install
-   ```
-2. Start the core frontend logic or backend server processes directly using Node (or serve via any local http-server).
+1. [Node.js](https://nodejs.org/) (v16.x or newer).
+2. Existing Serial backend stream capable of serving telemetry over WebSockets on `ws://localhost:<PORT>`.
 
 ### Usage
-- Run the web-based visualizer natively using an HTTP server to inspect UI elements.
-- Analyze collected data dumps via the included `CSV_Data_Plotter.html`.
+Since this repo contains the frontend suite:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/RudeHats/Software_v_01.git
+   ```
+2. Serve the `frontend` directory using any local web server. For example:
+   ```bash
+   npx serve frontend/
+   ```
+3. Open `http://localhost:3000/gui.html` in your browser. (The dashboard will attempt to connect to its configured WebSocket port).
+
+### Building Your Own GCS?
+Check out our comprehensive [Building a GCS Guide](Building_a_GCS_Guide.md) for architectural blueprints and step-by-step instructions on creating a customized telemetry station based on this architecture.
 
 ## 📜 License
 This project is licensed under the **ISC License**.
